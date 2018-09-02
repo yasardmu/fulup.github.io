@@ -1,8 +1,207 @@
-<html>
- <head>
-  <title>Test page</title>
- </head>
- <body>
-  <h1>Hello world</h1>
- </body>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Coursework Survival Kit</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <style>
+      *{font-family:'Roboto'; box-sizing:border-box; transition:all ease-in .3s;}
+      #container{width:450px; margin:0 auto;}
+      h1{font-weight:bold; text-align:center;}
+      h1 > span{color:#9d0932;}
+      .form-element{margin-bottom:15px;}
+      .form-element input, .form-element  select, button{width:100%; border:1px solid #efefef; border-radius:8px; height:45px; padding-left:1rem; outline:none;}
+      button{background:#9d0932; cursor:pointer; color:#fff;}
+      button:hover{background:#000;}
+      h3{font-size:1.1rem; margin-bottom:0px;}
+      .completeBy{font-size: .75rem; color:#a29e9e; margin-top: 5px; font-style: italic;}
+      ol{font-size: 0.85rem; margin-top: -5px; color: #a29e9e; padding-left: 1rem;}
+      ol > li{margin-bottom: 3px;}
+      input[type="date"]:before {
+        content: attr(placeholder) !important;
+        color: #aaa;
+        margin-right: 0.5em;
+      }
+      input[type="date"]:focus:before,
+      input[type="date"]:valid:before {
+        content: "";
+      }
+      input[type=date], select{background-color:#9d093252;}
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <form id="form" action="index.php" onsubmit="return false;">
+        <h1><span>Assignment</span> Survival Kit</h1>
+        <div class="form-element">
+          <label>
+            Assignment Type
+            <select id="assignmentType">
+              <option hidden>Assignment  Type</option>
+              <option value="https://fulup.github.io/json/essay.json">Essay</option>
+              <option value="https://fulup.github.io/json/maths_stat.json">Maths Stat</option>
+			  <option value="https://fulup.github.io/json/maths.json">Maths</option>
+              <option value="https://fulup.github.io/json/reports.json">Report</option>
+              <option value="http://yasarmahmood.com/projects/dmu/csk/studio_crit.json">Studio Crit</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-element">
+          <label>
+            Assignment Start
+            <input id="assignmentStart" type="date" />
+          </label>
+        </div>
+
+        <div class="form-element">
+          <label>
+            Assignment End
+            <input id="assignmentEnd" type="date" />
+          </label>
+        </div>
+
+        <div class="form-element">
+          <button id="assignmentSubmit" type="submit" >Generate Timetable!</button>
+        </div>
+      </form>
+
+      <div id="result">
+
+      </div>
+    </div>
+
+    <script>
+      Date.daysBetween = function( date1, date2 ) {   //Get 1 day in milliseconds
+        var one_day=1000*60*60*24;    // Convert both dates to milliseconds
+        var date1_ms = date1.getTime();
+        var date2_ms = date2.getTime();    // Calculate the difference in milliseconds
+        var difference_ms = date2_ms - date1_ms;        // Convert back to days and return
+        return Math.round(difference_ms/one_day);
+      }
+
+      function addDays(dateObj, numDays) {
+        return dateObj.setDate(dateObj.getDate() + numDays);
+      }
+
+      function formatDate(x){
+        var curr_date = x.getDate();
+        var curr_month = x.getMonth() + 1; //Months are zero based
+        var curr_year = x.getFullYear();
+
+        return curr_date + "/" + curr_month + "/" + curr_year;
+      }
+
+      getJSON = function(url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'json';
+        xhr.onload = function() {
+          var status = xhr.status;
+          if (status === 200) {
+            callback(null, xhr.response);
+          } else {
+          callback(status, xhr.response);
+          }
+        };
+        xhr.send();
+      };
+
+      function restart(){
+        document.getElementById("result").innerHTML = "";
+        document.getElementById("form").style.display = "block";
+        document.getElementById("result").style.display = "none";
+      }
+
+      document.getElementById("assignmentSubmit").addEventListener("click", function(){
+        var error = true;
+        //Put Elements into Variables
+        var assignmentType    = document.getElementById("assignmentType").value;
+        var assignmentStart   = new Date(document.getElementById("assignmentStart").value);
+        var assignmentEnd     = new Date(document.getElementById("assignmentEnd").value);
+
+        if(assignmentType === "Assignment Type"){
+          document.getElementById("assignmentType").style.border = "1px solid red";
+        }else{
+          document.getElementById("assignmentType").style.border = "1px solid #efefef";
+        }
+
+        if(document.getElementById("assignmentStart").value === ""){
+          document.getElementById("assignmentStart").style.border = "1px solid red";
+        }else{
+          document.getElementById("assignmentStart").style.border = "1px solid #efefef";
+        }
+
+        if(document.getElementById("assignmentEnd").value === ""){
+          document.getElementById("assignmentEnd").style.border = "1px solid red";
+        }else{
+          document.getElementById("assignmentEnd").style.border = "1px solid #efefef";
+        }
+
+        if(assignmentEnd < assignmentStart){
+          document.getElementById("assignmentStart").style.border = "1px solid red";
+          document.getElementById("assignmentEnd").style.border = "1px solid red";
+        }else{
+          document.getElementById("assignmentStart").style.border = "1px solid #efefef";
+          document.getElementById("assignmentEnd").style.border = "1px solid #efefef";
+        }
+
+        if(assignmentType === "Assignment Type" || document.getElementById("assignmentStart").value === "" || document.getElementById("assignmentEnd").value === "" || assignmentEnd < assignmentStart){
+
+        }else{
+          error = false;
+        }
+
+        //Get data
+
+        var theData = getJSON(assignmentType,
+        function(err, data) {
+          if (err !== null) {
+            console.log('Something went wrong: ' + err);
+          } else {
+             //data;
+            var result            = '';
+            var timeToTake        = data.time_to_take;
+            var steps             = data.steps;
+            var theSteps          = data.the_steps;
+
+            var stepsLoop         = 0;
+            var numberOfSteps     = 5;
+            var numberOfDays      = Date.daysBetween(assignmentStart, assignmentEnd);
+            /*var daysPerStep       = Math.round(numberOfDays/numberOfSteps); */
+
+
+
+            for(stepsLoop; steps.length > stepsLoop; stepsLoop++){
+              var stepDays      = Math.round(timeToTake[stepsLoop]/numberOfDays);
+              var stepNumber    = stepsLoop + 1;
+              var completeBy    = addDays(assignmentStart, stepDays);
+              var timeStamp     = new Date(completeBy);
+              var theStepsLoop  = 0;
+              var theStepsHTML  = "";
+
+              for(theSteps[stepsLoop]; theSteps[stepsLoop].length > theStepsLoop; theStepsLoop++){
+                theStepsHTML += "<li>"+theSteps[stepsLoop][theStepsLoop]+"</li>";
+              }
+
+              result += '<div class="step">';
+              result += '<h3><span style="color:#9d0932;">Step '+stepNumber+'</span> - '+steps[stepsLoop]+'</h3>';
+              result += '<p class="completeBy">Complete by '+formatDate(assignmentStart)+'</p>';
+              result += '<ol>'+theStepsHTML+'</ol>';
+              result  += '</div>';
+            }
+
+            if(error == false){
+              result += "<button id='restart' onclick='restart()'>Restart</button>"
+
+              document.getElementById("result").innerHTML = result;
+
+              document.getElementById("form").style.display = "none";
+              document.getElementById("result").style.display = "block";
+            }
+          }
+        });
+      });
+    </script>
+  </body>
 </html>
